@@ -826,6 +826,16 @@
         "codeInterpreter": "代码解释器",
         "imageGeneration": "图像生成",
         "shell": "Shell",
+        "builtin": {
+          "project_memory_save": "保存项目记忆",
+          "project_memory_delete": "删除项目记忆",
+          "knowledge_base_create": "创建知识库",
+          "knowledge_base_update": "更新知识库",
+          "knowledge_base_write_document": "写入知识库文档",
+          "knowledge_base_delete_document": "删除知识库文档",
+          "knowledge_base_list_documents": "查看知识库文档列表",
+          "knowledge_base_read_document": "读取知识库文档"
+        },
         "generic": "工具调用"
       },
       "detail": {

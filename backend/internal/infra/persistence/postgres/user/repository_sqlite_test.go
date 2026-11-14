@@ -164,6 +164,9 @@ func TestDeleteAccountHardRemovesUserScopedAssociations(t *testing.T) {
 	if err = db.Create(&project).Error; err != nil {
 		t.Fatalf("seed conversation project: %v", err)
 	}
+	if err = db.Create(&models.ProjectMemory{ProjectID: project.ID, MemoryKey: "key", Value: "value", Source: "user"}).Error; err != nil {
+		t.Fatal(err)
+	}
 	skill := models.Skill{
 		Scope:       "user",
 		OwnerUserID: user.ID,
@@ -244,6 +247,7 @@ func TestDeleteAccountHardRemovesUserScopedAssociations(t *testing.T) {
 	}
 	for label, item := range map[string]any{
 		"conversation projects":               &models.ConversationProject{},
+		"project memories":                    &models.ProjectMemory{},
 		"project MCP associations":            &models.ConversationProjectMCPTool{},
 		"project Skill associations":          &models.ConversationProjectSkill{},
 		"project knowledge base associations": &models.ConversationProjectKnowledgeBase{},

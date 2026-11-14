@@ -375,8 +375,15 @@ func TestConversationProjectDefaultsRoundTripAndDelete(t *testing.T) {
 		t.Fatalf("updated project defaults = %#v", updated)
 	}
 
+	if err := db.Create(&models.ProjectMemory{ProjectID: project.ID, MemoryKey: "key", Value: "value", Source: "user"}).Error; err != nil {
+		t.Fatal(err)
+	}
 	if _, err = repo.DeleteConversationProjectByPublicID(ctx, 1, project.PublicID, repository.DeleteConversationProjectOptions{}); err != nil {
 		t.Fatalf("DeleteConversationProjectByPublicID() error = %v", err)
+	}
+	var memoryCount int64
+	if err := db.Unscoped().Model(&models.ProjectMemory{}).Where("project_id = ?", project.ID).Count(&memoryCount).Error; err != nil || memoryCount != 0 {
+		t.Fatalf("project memory cleanup: %d, %v", memoryCount, err)
 	}
 	var associationCount int64
 	if err = db.Model(&models.ConversationProjectMCPTool{}).Where("project_id = ?", project.ID).Count(&associationCount).Error; err != nil {
@@ -1534,7 +1541,7 @@ func openConversationRepositoryTestDB(t *testing.T) *gorm.DB {
 			_ = sqlDB.Close()
 		}
 	})
-	if err := db.AutoMigrate(&models.Conversation{}, &models.ConversationProject{}, &models.ConversationProjectMCPTool{}, &models.ConversationProjectSkill{}, &models.KnowledgeBase{}, &models.ConversationProjectKnowledgeBase{}, &models.ConversationShare{}, &models.Message{}, &models.ConversationMessageUIState{}, &models.Attachment{}, &models.FileObject{}, &models.ConversationRun{}, &models.ChatRunEvent{}); err != nil {
+	if err := db.AutoMigrate(&models.Conversation{}, &models.ConversationProject{}, &models.ProjectMemory{}, &models.ConversationProjectMCPTool{}, &models.ConversationProjectSkill{}, &models.KnowledgeBase{}, &models.ConversationProjectKnowledgeBase{}, &models.ConversationShare{}, &models.Message{}, &models.ConversationMessageUIState{}, &models.Attachment{}, &models.FileObject{}, &models.ConversationRun{}, &models.ChatRunEvent{}); err != nil {
 		t.Fatalf("migrate models: %v", err)
 	}
 	return db
@@ -1821,5 +1828,31 @@ func TestListConversationEventLogsMatchesOriginatingRequestID(t *testing.T) {
 	}
 	if total != 1 || len(items) != 1 || items[0].RunID != "run_target" {
 		t.Fatalf("expected only the run created by req-target, got total=%d %#v", total, items)
+	}
+}
+
+func TestProjectWritableKnowledgeBaseDirectory(t *testing.T) {
+	db := openConversationRepositoryTestDB(t)
+	project := models.ConversationProject{UserID: 1, PublicID: "directory-project", Status: "archived"}
+	if err := db.Create(&project).Error; err != nil {
+		t.Fatal(err)
+	}
+	bases := []models.KnowledgeBase{{PublicID: "directory-mine", Name: "Mine", Scope: "user", OwnerUserID: 1}, {PublicID: "directory-other", Name: "Other", Scope: "user", OwnerUserID: 2}, {PublicID: "directory-builtin", Name: "Builtin", Scope: "builtin"}, {PublicID: "directory-unlinked", Name: "Unlinked", Scope: "user", OwnerUserID: 1}}
+	if err := db.Create(&bases).Error; err != nil {
+		t.Fatal(err)
+	}
+	for _, base := range bases[:3] {
+		if err := db.Create(&models.ConversationProjectKnowledgeBase{ProjectID: project.ID, KnowledgeBaseID: base.ID}).Error; err != nil {
+			t.Fatal(err)
+		}
+	}
+	repo := NewRepo(db)
+	items, err := repo.ListProjectWritableKnowledgeBases(context.Background(), 1, project.ID)
+	if err != nil || len(items) != 1 || items[0].PublicID != bases[0].PublicID {
+		t.Fatalf("writable directory: %+v, %v", items, err)
+	}
+	items, err = repo.ListProjectWritableKnowledgeBases(context.Background(), 2, project.ID)
+	if err != nil || len(items) != 0 {
+		t.Fatalf("foreign project directory: %+v, %v", items, err)
 	}
 }

@@ -261,6 +261,7 @@ func (s *projectDefaultConversationRepoStub) CreateConversation(_ context.Contex
 }
 
 type knowledgeBaseResolverStub struct {
+	knowledgeBaseResolver
 	resolveFiles func(context.Context, uint, []string) ([]domainknowledgebase.KnowledgeBase, []domainconversation.FileObject, error)
 }
 

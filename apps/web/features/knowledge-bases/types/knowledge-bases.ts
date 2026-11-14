@@ -10,6 +10,13 @@ export type KnowledgeBaseDraft = {
   description: string;
 };
 
+// A text document being written; `fileID` is set when editing an existing one.
+export type KnowledgeBaseDocumentDraft = {
+  fileID?: string;
+  title: string;
+  content: string;
+};
+
 export type KnowledgeBasePreviewTarget = {
   knowledgeBaseID: string;
   admin: boolean;

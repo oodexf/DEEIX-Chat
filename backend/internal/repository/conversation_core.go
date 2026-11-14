@@ -5,6 +5,7 @@ import (
 	"time"
 
 	domainconversation "github.com/DEEIX-AI/DEEIX-Chat/backend/internal/domain/conversation"
+	domainknowledgebase "github.com/DEEIX-AI/DEEIX-Chat/backend/internal/domain/knowledgebase"
 )
 
 // MessageUsageUpdate 定义消息 token 用量更新字段。
@@ -89,6 +90,8 @@ type ConversationMetadataRepository interface {
 	CreateConversationProject(ctx context.Context, item *domainconversation.ConversationProject) error
 	ListConversationProjects(ctx context.Context, userID uint, statusFilter string) ([]domainconversation.ConversationProject, error)
 	GetConversationProjectByPublicID(ctx context.Context, userID uint, publicID string) (*domainconversation.ConversationProject, error)
+	ListProjectWritableKnowledgeBases(ctx context.Context, userID uint, projectID uint) ([]domainknowledgebase.KnowledgeBase, error)
+	AuthorizeConversationProjectTool(ctx context.Context, userID uint, conversationID uint, projectID uint, knowledgeBasePublicID string) error
 	UpdateConversationProjectMetadataByPublicID(ctx context.Context, userID uint, publicID string, patch domainconversation.ConversationProjectPatch) (*domainconversation.ConversationProject, error)
 	DeleteConversationProjectByPublicID(ctx context.Context, userID uint, publicID string, options DeleteConversationProjectOptions) ([]string, error)
 	ReorderConversationProjects(ctx context.Context, userID uint, publicIDs []string) error

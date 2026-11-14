@@ -60,6 +60,9 @@ type memoryRecorder interface {
 	ListUserMemories(ctx context.Context, userID uint) ([]domainmemory.UserMemory, error)
 	SearchUserMemoriesByEmbedding(ctx context.Context, userID uint, queryEmbedding []float32, embeddingSignature string, topK int, minSimilarity float64) ([]domainmemory.UserMemory, error)
 	UpsertUserMemoryEmbedding(ctx context.Context, userID uint, memoryKey string, expectedValue string, embedding []float32, embeddingSignature string) error
+	ListProjectMemoriesByProjectID(ctx context.Context, projectID uint) ([]domainmemory.ProjectMemory, error)
+	UpsertProjectMemoryByProjectID(ctx context.Context, projectID uint, key, value, source string) (*domainmemory.ProjectMemory, error)
+	DeleteProjectMemoryByKey(ctx context.Context, projectID uint, key string) error
 }
 
 type skillResolver interface {
@@ -74,6 +77,12 @@ type uiComponentResolver interface {
 
 type knowledgeBaseResolver interface {
 	ResolveFiles(ctx context.Context, userID uint, publicIDs []string) ([]domainknowledgebase.KnowledgeBase, []model.FileObject, error)
+	CreateUserForProject(ctx context.Context, userID uint, projectID uint, name, description string) (*domainknowledgebase.KnowledgeBase, error)
+	UpdateUserDetails(ctx context.Context, userID uint, publicID string, name, description *string) (*domainknowledgebase.KnowledgeBase, error)
+	WriteUserTextDocument(ctx context.Context, userID uint, publicID, fileID, title, content string) (*model.FileObject, error)
+	ReadUserTextDocument(ctx context.Context, userID uint, publicID, fileID string) (*domainknowledgebase.TextDocument, error)
+	ListVisibleFiles(ctx context.Context, userID uint, publicID string, page int, pageSize int) ([]model.FileObject, int64, error)
+	RemoveUserFile(ctx context.Context, userID uint, publicID string, fileID string) error
 }
 
 type mcpToolResolver interface {

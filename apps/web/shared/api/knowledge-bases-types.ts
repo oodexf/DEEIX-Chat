@@ -14,6 +14,8 @@ import type {
   KnowledgeBaseFileProcessingStatusResponse,
   KnowledgeBasePageResponseDoc,
   KnowledgeBaseResponse,
+  TextDocumentResponse,
+  WriteTextDocumentRequest,
 } from "@deeix/api-contract";
 
 export type KnowledgeBaseScope = "builtin" | "user";
@@ -44,3 +46,5 @@ export type AddKnowledgeBaseFilesRequest = ContractAddKnowledgeBaseFilesRequest;
 export type KnowledgeBaseDeleteData = KnowledgeBaseDeleteDataResponse;
 export type KnowledgeBaseFileMutationData = KnowledgeBaseFileMutationDataResponse;
 export type KnowledgeBaseFileData = KnowledgeBaseFileDataResponse;
+export type KnowledgeBaseDocumentDTO = TextDocumentResponse;
+export type WriteKnowledgeBaseDocumentRequest = WriteTextDocumentRequest;

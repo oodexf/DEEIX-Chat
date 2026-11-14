@@ -12,6 +12,7 @@ import (
 	appchannel "github.com/DEEIX-AI/DEEIX-Chat/backend/internal/application/channel"
 	appstorage "github.com/DEEIX-AI/DEEIX-Chat/backend/internal/application/objectstorage"
 	domainconversation "github.com/DEEIX-AI/DEEIX-Chat/backend/internal/domain/conversation"
+	domainknowledgebase "github.com/DEEIX-AI/DEEIX-Chat/backend/internal/domain/knowledgebase"
 	domainmemory "github.com/DEEIX-AI/DEEIX-Chat/backend/internal/domain/memory"
 	"github.com/DEEIX-AI/DEEIX-Chat/backend/internal/infra/config"
 	"github.com/DEEIX-AI/DEEIX-Chat/backend/internal/pkg/conv"
@@ -620,15 +621,17 @@ type userContextInput struct {
 	// Files 是依赖本轮问题的文件全文（检索失败或未命中后的回退），只随本轮发送。
 	Files []AttachmentInput
 	// UnretrievedFiles 是本轮检索过但没有提供任何内容的用户附件，只随本轮发送。
-	UnretrievedFiles    []unretrievedAttachment
-	ImageAnalyses       []imageAttachmentAnalysis
-	RAGChunks           []domainconversation.RAGChunk
-	RAGNotice           string
-	HistoricalArtifacts []domainconversation.ContextArtifact
-	CurrentArtifacts    []domainconversation.ContextArtifact
-	Snapshot            *snapshotContext
-	Memory              []domainmemory.UserMemory
-	RecallChunks        []domainconversation.MessageChunk
+	UnretrievedFiles      []unretrievedAttachment
+	ImageAnalyses         []imageAttachmentAnalysis
+	RAGChunks             []domainconversation.RAGChunk
+	RAGNotice             string
+	HistoricalArtifacts   []domainconversation.ContextArtifact
+	CurrentArtifacts      []domainconversation.ContextArtifact
+	Snapshot              *snapshotContext
+	Memory                []domainmemory.UserMemory
+	ProjectMemories       []domainmemory.ProjectMemory
+	ProjectKnowledgeBases []domainknowledgebase.KnowledgeBase
+	RecallChunks          []domainconversation.MessageChunk
 	// UIStates 是用户在此前回复的交互式组件里当前设定的状态，只随本轮发送。
 	UIStates []uiStateContextBlock
 }
@@ -822,6 +825,7 @@ func injectUserContext(
 		len(input.HistoricalArtifacts) == 0 &&
 		input.Snapshot == nil &&
 		len(input.Memory) == 0 &&
+		len(input.ProjectMemories) == 0 && len(input.ProjectKnowledgeBases) == 0 &&
 		len(input.RecallChunks) == 0 &&
 		len(input.Files) == 0 &&
 		len(input.UnretrievedFiles) == 0 &&
@@ -951,21 +955,24 @@ func formatAttachmentFileContext(fileName string, text string) string {
 }
 
 type userContextXML struct {
-	summary   string
-	memory    []string
-	files     []string
-	fileMeta  []string
-	images    []string
-	evidence  []string
-	rag       []string
-	ragNotice string
-	recall    []string
-	uiStates  []string
+	summary               string
+	memory                []string
+	projectMemories       []string
+	projectKnowledgeBases []string
+	files                 []string
+	fileMeta              []string
+	images                []string
+	evidence              []string
+	rag                   []string
+	ragNotice             string
+	recall                []string
+	uiStates              []string
 }
 
 func (x userContextXML) empty() bool {
 	return strings.TrimSpace(x.summary) == "" &&
 		len(x.memory) == 0 &&
+		len(x.projectMemories) == 0 && len(x.projectKnowledgeBases) == 0 &&
 		len(x.files) == 0 &&
 		len(x.fileMeta) == 0 &&
 		len(x.images) == 0 &&
@@ -978,16 +985,18 @@ func (x userContextXML) empty() bool {
 
 func buildUserContextXML(input userContextInput) userContextXML {
 	return userContextXML{
-		summary:   formatSnapshotContext(input.Snapshot),
-		memory:    formatMemoryContext(input.Memory),
-		files:     formatFallbackFileContext(input.Files),
-		fileMeta:  formatUnretrievedAttachmentContext(input.UnretrievedFiles),
-		images:    formatImageAnalysisContext(input.ImageAnalyses),
-		evidence:  formatHistoricalEvidenceContext(input.HistoricalArtifacts),
-		rag:       formatRAGFileContext(input.RAGChunks),
-		ragNotice: strings.TrimSpace(input.RAGNotice),
-		recall:    formatRecallContext(input.RecallChunks),
-		uiStates:  formatUIStateContext(input.UIStates),
+		summary:               formatSnapshotContext(input.Snapshot),
+		memory:                formatMemoryContext(input.Memory),
+		projectMemories:       formatProjectMemoryContext(input.ProjectMemories),
+		projectKnowledgeBases: formatProjectKnowledgeBaseContext(input.ProjectKnowledgeBases),
+		files:                 formatFallbackFileContext(input.Files),
+		fileMeta:              formatUnretrievedAttachmentContext(input.UnretrievedFiles),
+		images:                formatImageAnalysisContext(input.ImageAnalyses),
+		evidence:              formatHistoricalEvidenceContext(input.HistoricalArtifacts),
+		rag:                   formatRAGFileContext(input.RAGChunks),
+		ragNotice:             strings.TrimSpace(input.RAGNotice),
+		recall:                formatRecallContext(input.RecallChunks),
+		uiStates:              formatUIStateContext(input.UIStates),
 	}
 }
 
@@ -1126,6 +1135,16 @@ func buildUserContextPrompt(userRequest string, contextXML userContextXML) strin
 		builder.WriteString("\n<mems>\n")
 		builder.WriteString(strings.Join(contextXML.memory, "\n"))
 		builder.WriteString("\n</mems>")
+	}
+	if len(contextXML.projectMemories) > 0 {
+		builder.WriteString("\n<project_mems>\n")
+		builder.WriteString(strings.Join(contextXML.projectMemories, "\n"))
+		builder.WriteString("\n</project_mems>")
+	}
+	if len(contextXML.projectKnowledgeBases) > 0 {
+		builder.WriteString("\n<project_kbs>\n")
+		builder.WriteString(strings.Join(contextXML.projectKnowledgeBases, "\n"))
+		builder.WriteString("\n</project_kbs>")
 	}
 	if len(contextXML.files) > 0 {
 		builder.WriteString("\n<files>\n")
@@ -1334,4 +1353,39 @@ func buildPreferencePrompt(memories []domainmemory.UserMemory, maxTokens int) st
 		tokenCount += lineTokens
 	}
 	return strings.TrimRight(sb.String(), "\n")
+}
+
+// selectProjectMemories 按仓储的更新时间顺序，在预算内保留完整条目。
+func selectProjectMemories(items []domainmemory.ProjectMemory, budget int64) []domainmemory.ProjectMemory {
+	result := make([]domainmemory.ProjectMemory, 0, len(items))
+	budget -= tokenestimate.Estimate("<project_mems>\n\n</project_mems>")
+	for _, item := range items {
+		cost := tokenestimate.Estimate(formatProjectMemory(item) + "\n")
+		if cost > budget {
+			break
+		}
+		result = append(result, item)
+		budget -= cost
+	}
+	return result
+}
+
+func formatProjectMemory(item domainmemory.ProjectMemory) string {
+	return `<mem k="` + xmlEscapeAttr(item.MemoryKey) + `">` + xmlEscapeText(item.Value) + `</mem>`
+}
+
+func formatProjectMemoryContext(items []domainmemory.ProjectMemory) []string {
+	result := make([]string, 0, len(items))
+	for _, item := range items {
+		result = append(result, formatProjectMemory(item))
+	}
+	return result
+}
+
+func formatProjectKnowledgeBaseContext(items []domainknowledgebase.KnowledgeBase) []string {
+	result := make([]string, 0, len(items))
+	for _, item := range items {
+		result = append(result, `<kb id="`+xmlEscapeAttr(item.PublicID)+`" name="`+xmlEscapeAttr(item.Name)+`">`+xmlEscapeText(item.Description)+`</kb>`)
+	}
+	return result
 }

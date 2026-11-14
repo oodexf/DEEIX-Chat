@@ -212,6 +212,7 @@
   "knowledgeBase": {
     "conflict": "A knowledge base with the same name already exists in this scope.",
     "disabled": "Knowledge base retrieval is disabled.",
+    "documentNotEditable": "This file is not an editable text document.",
     "fileCleanupUnavailable": "Platform source cleanup is temporarily unavailable. Try again later.",
     "internal": "The knowledge base operation failed. Please try again later.",
     "invalid": "The knowledge base configuration is invalid.",
@@ -289,7 +290,8 @@
   },
   "memory": {
     "keyRequired": "Memory key is required.",
-    "limitExceeded": "The memory limit has been reached."
+    "limitExceeded": "The memory limit has been reached.",
+    "notFound": "Memory not found."
   },
   "media": {
     "imagePromptRequired": "Enter an image prompt.",

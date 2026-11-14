@@ -549,6 +549,16 @@ export function useConversationSidebarList({
     return created;
   }, [setProjectList]);
 
+  // The assistant can link a knowledge base it created to the project mid-run,
+  // which changes the project's defaults without going through this controller.
+  const refreshProjects = React.useCallback(async () => {
+    const token = await resolveAccessToken();
+    if (!token) {
+      return;
+    }
+    setProjectList(await fetchActiveProjects(token));
+  }, [setProjectList]);
+
   const updateProject = React.useCallback(
     async (projectID: string, payload: UpdateConversationProjectRequest): Promise<ConversationProjectDTO | null> => {
       const token = await resolveAccessToken();
@@ -899,6 +909,7 @@ export function useConversationSidebarList({
       updateLabelsByPublicID,
       createProject,
       updateProject,
+      refreshProjects,
       deleteProject,
       reorderProjects,
       setProjectByPublicID,
@@ -929,6 +940,7 @@ export function useConversationSidebarList({
       updateLabelsByPublicID,
       upsertConversation,
       recentItems,
+      refreshProjects,
       reorderProjects,
       retryLoadMore,
       setProjectByPublicID,

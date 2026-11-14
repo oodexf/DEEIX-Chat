@@ -2096,6 +2096,7 @@ export interface KnowledgeBaseFileResponse {
   chunkCount: number;
   createdAt: string;
   detectedMIME: string;
+  editable: boolean;
   embedError: string;
   embedStatus: string;
   extractStatus: string;
@@ -3413,6 +3414,38 @@ export interface PlatformFileDeleteResponseDoc {
   errorMsg: string;
 }
 
+export interface ProjectMemoryDataResponse {
+  memory: ProjectMemoryResponse;
+}
+
+export interface ProjectMemoryDeleteDataResponse {
+  deleted: boolean;
+}
+
+export interface ProjectMemoryDeleteResponseDoc {
+  data: ProjectMemoryDeleteDataResponse;
+  errorMsg: string;
+}
+
+export interface ProjectMemoryListResponseDoc {
+  data: ProjectMemoryResponse[];
+  errorMsg: string;
+}
+
+export interface ProjectMemoryResponse {
+  createdAt: string;
+  id: number;
+  memoryKey: string;
+  source: "user" | "assistant" | "auto";
+  updatedAt: string;
+  value: string;
+}
+
+export interface ProjectMemoryResponseDoc {
+  data: ProjectMemoryDataResponse;
+  errorMsg: string;
+}
+
 export interface PromptPresetDataResponse {
   promptPreset: PromptPresetResponse;
 }
@@ -4416,6 +4449,21 @@ export interface TemporaryChatUIStateRequest {
   title?: string;
 }
 
+export interface TextDocumentDataResponse {
+  document: TextDocumentResponse;
+}
+
+export interface TextDocumentResponse {
+  content: string;
+  fileID: string;
+  title: string;
+}
+
+export interface TextDocumentResponseDoc {
+  data: TextDocumentDataResponse;
+  errorMsg: string;
+}
+
 export interface ToolListResponse {
   results: ToolResponse[];
 }
@@ -4910,6 +4958,11 @@ export interface UpsertModelPricingRequest {
   schedulePricingJSON?: string;
   /** @maxLength 20000 */
   tieredPricingJSON?: string;
+}
+
+export interface UpsertProjectMemoryRequest {
+  memoryKey: string;
+  value: string;
 }
 
 export interface UpsertUpstreamModelRequest {
@@ -5475,6 +5528,11 @@ export interface WriteSkillRequest {
   title: string;
   /** @maxLength 64 */
   trigger: string;
+}
+
+export interface WriteTextDocumentRequest {
+  content: string;
+  title: string;
 }
 
 export interface WriteUIComponentRequest {
@@ -9617,6 +9675,65 @@ export namespace ConversationProjects {
     export type RequestHeaders = {};
     export type ResponseBody = ConversationProjectResponseDoc;
   }
+
+  /**
+   * No description
+   * @tags memory
+   * @name MemoriesList
+   * @summary 查询项目共享记忆
+   * @request GET:/conversation-projects/{id}/memories
+   * @secure
+   */
+  export namespace MemoriesList {
+    export type RequestParams = {
+      /** 项目公开ID */
+      id: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ProjectMemoryListResponseDoc;
+  }
+
+  /**
+   * No description
+   * @tags memory
+   * @name MemoriesUpdate
+   * @summary 新建或更新项目共享记忆
+   * @request PUT:/conversation-projects/{id}/memories
+   * @secure
+   */
+  export namespace MemoriesUpdate {
+    export type RequestParams = {
+      /** 项目公开ID */
+      id: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = UpsertProjectMemoryRequest;
+    export type RequestHeaders = {};
+    export type ResponseBody = ProjectMemoryResponseDoc;
+  }
+
+  /**
+   * No description
+   * @tags memory
+   * @name MemoriesDelete
+   * @summary 删除项目共享记忆
+   * @request DELETE:/conversation-projects/{id}/memories/{memoryID}
+   * @secure
+   */
+  export namespace MemoriesDelete {
+    export type RequestParams = {
+      /** 项目公开ID */
+      id: string;
+      /** 记忆ID */
+      memoryId: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ProjectMemoryDeleteResponseDoc;
+  }
 }
 
 export namespace ConversationRuns {
@@ -10675,6 +10792,67 @@ export namespace KnowledgeBases {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = KnowledgeBaseFilePageResponseDoc;
+  }
+
+  /**
+   * No description
+   * @tags knowledge-bases
+   * @name MineDocumentsCreate
+   * @summary 在个人知识库中新建文本文档
+   * @request POST:/knowledge-bases/mine/{id}/documents
+   * @secure
+   */
+  export namespace MineDocumentsCreate {
+    export type RequestParams = {
+      /** 知识库公开ID */
+      id: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = WriteTextDocumentRequest;
+    export type RequestHeaders = {};
+    export type ResponseBody = KnowledgeBaseFileResponseDoc;
+  }
+
+  /**
+   * No description
+   * @tags knowledge-bases
+   * @name MineDocumentsDetail
+   * @summary 读取个人知识库文本文档的标题和正文
+   * @request GET:/knowledge-bases/mine/{id}/documents/{fileID}
+   * @secure
+   */
+  export namespace MineDocumentsDetail {
+    export type RequestParams = {
+      /** 文件ID */
+      fileId: string;
+      /** 知识库公开ID */
+      id: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = TextDocumentResponseDoc;
+  }
+
+  /**
+   * @description 返回实际文件 ID，内容变化后可能与原 ID 不同
+   * @tags knowledge-bases
+   * @name MineDocumentsUpdate
+   * @summary 全量替换个人知识库文本文档
+   * @request PUT:/knowledge-bases/mine/{id}/documents/{fileID}
+   * @secure
+   */
+  export namespace MineDocumentsUpdate {
+    export type RequestParams = {
+      /** 文件ID */
+      fileId: string;
+      /** 知识库公开ID */
+      id: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = WriteTextDocumentRequest;
+    export type RequestHeaders = {};
+    export type ResponseBody = KnowledgeBaseFileResponseDoc;
   }
 
   /**

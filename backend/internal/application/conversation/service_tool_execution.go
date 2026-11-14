@@ -25,6 +25,7 @@ type executeAssistantToolCallsInput struct {
 	TraceRecorder     *messageTraceRecorder
 	ToolNameMap       map[string]string
 	MCPBindings       map[string]mcpToolCallBinding
+	ProjectBindings   map[string]projectToolBinding
 	ToolSchemas       map[string]json.RawMessage
 	Ledger            *toolExecutionLedger
 	ResultTokenBudget int64
@@ -95,6 +96,10 @@ func (s *Service) executeAssistantToolCalls(ctx context.Context, input executeAs
 			ErrorJSON:      "",
 		}
 
+		if binding, ok := input.ProjectBindings[modelToolName]; ok && !input.Ephemeral {
+			slots[i] = s.executeProjectToolSlot(ctx, row, modelToolName, binding, input.ToolSchemas[modelToolName])
+			continue
+		}
 		binding := resolveMCPBinding(modelToolName, input.MCPBindings)
 		if binding == nil {
 			row.Status = "error"

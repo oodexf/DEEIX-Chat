@@ -47,6 +47,7 @@ func Models() []any {
 		&models.ChatRunEvent{},
 		&models.ChatContextRecord{},
 		&models.UserMemory{},
+		&models.ProjectMemory{},
 		&models.BillingPlan{},
 		&models.BillingPrice{},
 		&models.Subscription{},

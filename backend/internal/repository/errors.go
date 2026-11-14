@@ -33,6 +33,8 @@ var (
 	ErrFileProcessingQueueFull = errors.New("file processing queue full")
 	// ErrUserMemoryLimitExceeded 表示用户长期记忆条目数量达到上限，无法再新增。
 	ErrUserMemoryLimitExceeded = errors.New("user memory limit exceeded")
+	// ErrProjectMemoryLimitExceeded 表示项目记忆条数达到上限。
+	ErrProjectMemoryLimitExceeded = errors.New("project memory limit exceeded")
 	// ErrMCPServerLimitExceeded 表示 MCP 服务数量达到上限，无法再新增。
 	ErrMCPServerLimitExceeded = errors.New("mcp server limit exceeded")
 	// ErrConversationProjectLimitExceeded 表示单用户会话项目数量达到上限，无法再新增。

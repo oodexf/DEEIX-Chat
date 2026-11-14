@@ -11,6 +11,8 @@ var (
 	ErrKnowledgeBaseConflict = apperr.New("knowledge_base.conflict", "knowledge base conflict")
 	// ErrKnowledgeBaseFileNotFound 表示文件不存在、不可访问或未关联。
 	ErrKnowledgeBaseFileNotFound = apperr.NewMasked("knowledge_base.not_found", "knowledge base not found", "knowledge base file not found")
+	// ErrDocumentNotEditable 表示文件不是支持编辑的 UTF-8 文本文档。
+	ErrDocumentNotEditable = apperr.New("knowledge_base.document_not_editable", "knowledge base document is not editable")
 	// ErrKnowledgeBaseFileContentUnavailable 表示文件内容读取能力暂不可用。
 	ErrKnowledgeBaseFileContentUnavailable = apperr.NewMasked("knowledge_base.internal", "knowledge base operation failed", "knowledge base file content unavailable")
 	// ErrKnowledgeBaseFileCleanupUnavailable 表示请求同步删除文件，但文件安全清理能力不可用。

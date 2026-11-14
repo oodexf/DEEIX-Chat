@@ -31,6 +31,7 @@ type KnowledgeBaseFileResponse struct {
 	MimeType            string    `json:"mimeType"`
 	DetectedMIME        string    `json:"detectedMIME"`
 	FileCategory        string    `json:"fileCategory"`
+	Editable            bool      `json:"editable"`
 	SizeBytes           int64     `json:"sizeBytes"`
 	ProcessingStatus    string    `json:"processingStatus"`
 	Processing          bool      `json:"processing"`
@@ -279,11 +280,30 @@ func toKnowledgeBaseFileResponse(
 ) KnowledgeBaseFileResponse {
 	return KnowledgeBaseFileResponse{
 		FileID: item.FileID, FileName: item.FileName, MimeType: item.MimeType, DetectedMIME: item.DetectedMIME,
-		FileCategory: item.FileCategory, SizeBytes: item.SizeBytes, ProcessingStatus: item.ProcessingStatus,
+		FileCategory: item.FileCategory, Editable: item.Editable, SizeBytes: item.SizeBytes, ProcessingStatus: item.ProcessingStatus,
 		Processing: domainconversation.IsFileProcessing(item), ProcessingReady: item.ProcessingReady,
 		ExtractStatus: item.ExtractStatus, EmbedStatus: item.EmbedStatus, EmbedError: item.EmbedError,
 		ChunkCount: item.ChunkCount, RAGOptOut: item.RAGOptOut,
 		CanVectorize: capability.CanVectorize, VectorizationReason: capability.Reason,
 		CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt,
 	}
+}
+
+// WriteTextDocumentRequest 表示文档标题和完整正文。
+type WriteTextDocumentRequest struct {
+	Title   string `json:"title"`
+	Content string `json:"content"`
+}
+
+type TextDocumentResponse struct {
+	FileID  string `json:"fileID"`
+	Title   string `json:"title"`
+	Content string `json:"content"`
+}
+type TextDocumentDataResponse struct {
+	Document TextDocumentResponse `json:"document"`
+}
+type TextDocumentResponseDoc struct {
+	ErrorMsg string                   `json:"errorMsg"`
+	Data     TextDocumentDataResponse `json:"data"`
 }

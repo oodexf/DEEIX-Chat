@@ -191,6 +191,15 @@ func buildPromptPlan(ctx context.Context, input promptPlanInput) PromptPlan {
 			SourceRefs:    toolDefinitionSourceRefs(input.ToolRuntime.definitions),
 		})
 	}
+	if len(input.ToolRuntime.projectBindings) > 0 {
+		message := llm.Message{Role: "system", Content: projectToolGuidance}
+		insertAt := 0
+		for insertAt < len(messages) && messages[insertAt].Role == "system" {
+			insertAt++
+		}
+		messages = append(messages[:insertAt], append([]llm.Message{message}, messages[insertAt:]...)...)
+		trace.addBlock(PromptBlockTrace{Kind: PromptBlockToolGuidance, Title: "项目工具规则", TokenEstimate: estimateMessageTokens(message), Cacheable: true, SourceCount: len(input.ToolRuntime.projectBindings)})
+	}
 	messages = markLeadingSystemMessagesCacheable(messages)
 	messages = markConversationCacheBoundary(messages)
 
@@ -307,6 +316,12 @@ func dynamicContextSourceRefs(input userContextInput) []PromptSourceRef {
 	}
 	for _, att := range input.Attachments {
 		refs = appendPromptSourceRef(refs, "image", stableAttachmentSourceID(att), att.FileName)
+	}
+	for _, item := range input.ProjectMemories {
+		refs = appendPromptSourceRef(refs, "project_memory", fmt.Sprint(item.ProjectID)+":"+item.MemoryKey, item.MemoryKey)
+	}
+	for _, item := range input.ProjectKnowledgeBases {
+		refs = appendPromptSourceRef(refs, "project_knowledge_base", item.PublicID, item.Name)
 	}
 	// 检索回退的全文随本轮发送，来源与已落库的回退证据对应。
 	refs = append(refs, stableAttachmentSourceRefs(input.Files, input.CurrentArtifacts)...)

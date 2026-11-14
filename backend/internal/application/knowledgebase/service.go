@@ -365,7 +365,11 @@ func (s *Service) ListVisibleFiles(ctx context.Context, userID uint, publicID st
 		return nil, 0, err
 	}
 	offset, limit := pagination.Offset(page, pageSize)
-	return s.repo.ListKnowledgeBaseFiles(ctx, item.ID, offset, limit)
+	files, total, err := s.repo.ListKnowledgeBaseFiles(ctx, item.ID, offset, limit)
+	if err == nil && item.Scope == domainknowledgebase.ScopeUser {
+		markEditableDocuments(files)
+	}
+	return files, total, err
 }
 
 // ListAdminFiles 查询管理员内置知识库文件。

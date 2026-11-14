@@ -49,6 +49,7 @@ type KnowledgeBaseRepository interface {
 	GetKnowledgeBaseByPublicID(ctx context.Context, publicID string) (*domainknowledgebase.KnowledgeBase, error)
 	GetKnowledgeBaseAccessByPublicID(ctx context.Context, publicID string) (*domainknowledgebase.KnowledgeBase, error)
 	CreateKnowledgeBase(ctx context.Context, item *domainknowledgebase.KnowledgeBase) (*domainknowledgebase.KnowledgeBase, error)
+	CreateProjectKnowledgeBase(ctx context.Context, projectID uint, item *domainknowledgebase.KnowledgeBase) (*domainknowledgebase.KnowledgeBase, error)
 	PatchKnowledgeBase(ctx context.Context, id uint, patch KnowledgeBasePatch) (*domainknowledgebase.KnowledgeBase, error)
 	DeleteKnowledgeBase(ctx context.Context, id uint) ([]KnowledgeBaseFileCleanupCandidate, error)
 	ListKnowledgeBaseFiles(ctx context.Context, knowledgeBaseID uint, offset int, limit int) ([]domainconversation.FileObject, int64, error)
@@ -58,6 +59,7 @@ type KnowledgeBaseRepository interface {
 	ListAvailableKnowledgeBaseFiles(ctx context.Context, knowledgeBaseID uint, ownerUserID uint, query string, offset int, limit int) ([]domainconversation.FileObject, int64, error)
 	GetKnowledgeBaseFile(ctx context.Context, knowledgeBaseID uint, fileID string) (*domainconversation.FileObject, error)
 	AddKnowledgeBaseFiles(ctx context.Context, knowledgeBaseID uint, scope string, ownerUserID uint, actorUserID uint, fileIDs []string) error
+	ReplaceKnowledgeBaseTextFile(ctx context.Context, knowledgeBaseID uint, oldFileID string, newFileID string, actorUserID uint) error
 	RemoveKnowledgeBaseFile(ctx context.Context, knowledgeBaseID uint, fileID string) error
 	ResolveVisibleKnowledgeBaseFiles(ctx context.Context, userID uint, publicIDs []string) ([]domainknowledgebase.KnowledgeBase, []domainconversation.FileObject, error)
 }

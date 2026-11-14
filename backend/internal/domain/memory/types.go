@@ -13,3 +13,14 @@ type UserMemory struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+// ProjectMemory 表示同项目会话共享的记忆。
+type ProjectMemory struct {
+	ID        uint
+	ProjectID uint
+	MemoryKey string
+	Value     string
+	Source    string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}

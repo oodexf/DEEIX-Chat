@@ -826,6 +826,16 @@
         "codeInterpreter": "Code interpreter",
         "imageGeneration": "Image generation",
         "shell": "Shell",
+        "builtin": {
+          "project_memory_save": "Save project memory",
+          "project_memory_delete": "Delete project memory",
+          "knowledge_base_create": "Create knowledge base",
+          "knowledge_base_update": "Update knowledge base",
+          "knowledge_base_write_document": "Write knowledge base document",
+          "knowledge_base_delete_document": "Delete knowledge base document",
+          "knowledge_base_list_documents": "List knowledge base documents",
+          "knowledge_base_read_document": "Read knowledge base document"
+        },
         "generic": "Tool call"
       },
       "detail": {

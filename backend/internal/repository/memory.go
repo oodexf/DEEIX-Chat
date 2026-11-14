@@ -16,4 +16,9 @@ type MemoryRepository interface {
 	SearchUserMemoriesByEmbedding(ctx context.Context, userID uint, queryEmbedding []float32, embeddingSignature string, topK int, minSimilarity float64) ([]domainmemory.UserMemory, error)
 	// UpsertUserMemoryEmbedding 更新指定记忆条目的向量（异步写入，失败静默）。
 	UpsertUserMemoryEmbedding(ctx context.Context, userID uint, memoryKey string, expectedValue string, embedding []float32, embeddingSignature string) error
+	GetMemoryProjectID(ctx context.Context, userID uint, publicID string) (uint, error)
+	ListProjectMemories(ctx context.Context, projectID uint) ([]domainmemory.ProjectMemory, error)
+	UpsertProjectMemory(ctx context.Context, item *domainmemory.ProjectMemory) error
+	DeleteProjectMemory(ctx context.Context, projectID uint, memoryID uint) error
+	DeleteProjectMemoryByKey(ctx context.Context, projectID uint, key string) error
 }

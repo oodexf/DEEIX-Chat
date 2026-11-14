@@ -5,6 +5,7 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import type {
+  KnowledgeBaseDocumentDraft,
   KnowledgeBaseDraft,
   KnowledgeBaseMobileView,
   KnowledgeBaseMode,
@@ -24,6 +25,7 @@ import {
   fetchKnowledgeBaseFileContent,
   getKnowledgeBase,
   getKnowledgeBaseFileProcessingSnapshot,
+  getMyKnowledgeBaseDocument,
   listAdminKnowledgeBaseFiles,
   listAdminKnowledgeBases,
   listAvailableAdminKnowledgeBaseFiles,
@@ -32,6 +34,7 @@ import {
   listVisibleKnowledgeBases,
   removeAdminKnowledgeBaseFile,
   removeMyKnowledgeBaseFile,
+  saveMyKnowledgeBaseDocument,
   submitAdminPlatformFileEmbeddings,
   updateAdminKnowledgeBase,
   updateMyKnowledgeBase,
@@ -91,6 +94,8 @@ export function useKnowledgeBasePage(mode: KnowledgeBaseMode) {
   const [removingFileID, setRemovingFileID] = React.useState("");
   const [draft, setDraft] = React.useState<KnowledgeBaseDraft | null>(null);
   const [saving, setSaving] = React.useState(false);
+  const [documentDraft, setDocumentDraft] = React.useState<KnowledgeBaseDocumentDraft | null>(null);
+  const [documentSaving, setDocumentSaving] = React.useState(false);
   const [toggling, setToggling] = React.useState(false);
   const [addFilesOpen, setAddFilesOpen] = React.useState(false);
   const [availableFiles, setAvailableFiles] = React.useState<KnowledgeBaseFileDTO[]>([]);
@@ -665,6 +670,40 @@ export function useKnowledgeBasePage(mode: KnowledgeBaseMode) {
     }
   }, [draft, loadItems, mode, resolveErrorMessage, saving, t]);
 
+  const editDocument = React.useCallback(async (file: KnowledgeBaseFileDTO) => {
+    if (!selected) return;
+    try {
+      const token = await requireAccessToken();
+      setDocumentDraft(await getMyKnowledgeBaseDocument(token, selected.publicID, file.fileID));
+    } catch (error) {
+      toast.error(t("documentLoadFailed"), { description: resolveErrorMessage(error) });
+    }
+  }, [resolveErrorMessage, selected, t]);
+
+  const saveDocument = React.useCallback(async () => {
+    const title = documentDraft?.title.trim() ?? "";
+    if (!selected || !documentDraft || !title || !documentDraft.content.trim() || documentSaving) return;
+    setDocumentSaving(true);
+    try {
+      const token = await requireAccessToken();
+      await saveMyKnowledgeBaseDocument(
+        token,
+        selected.publicID,
+        { title, content: documentDraft.content },
+        documentDraft.fileID,
+      );
+      setDocumentDraft(null);
+      await replaceFileList(token, selected.publicID);
+      await loadItems(undefined, true);
+      dispatchKnowledgeBaseInvalidated(selected.publicID);
+      toast.success(t("documentSaved"));
+    } catch (error) {
+      toast.error(t("documentSaveFailed"), { description: resolveErrorMessage(error) });
+    } finally {
+      setDocumentSaving(false);
+    }
+  }, [documentDraft, documentSaving, loadItems, replaceFileList, resolveErrorMessage, selected, t]);
+
   const confirmAddFiles = React.useCallback(async () => {
     if (!selected || selectedFileIDs.length === 0 || addingFiles) return;
     if (selectedFileIDs.length > FILE_ACTION_LIMIT) {
@@ -1094,6 +1133,8 @@ export function useKnowledgeBasePage(mode: KnowledgeBaseMode) {
       vectorizingFileIDs,
       back: () => setMobileView("list"),
       addFiles: () => setAddFilesOpen(true),
+      createDocument: () => setDocumentDraft({ title: "", content: "" }),
+      editDocument,
       loadMoreFiles,
       removeFile,
       toggleFileSelection: toggleDetailFileSelection,
@@ -1114,6 +1155,13 @@ export function useKnowledgeBasePage(mode: KnowledgeBaseMode) {
       change: setDraft,
       close: () => setDraft(null),
       save: saveDraft,
+    },
+    documentEditor: {
+      draft: documentDraft,
+      saving: documentSaving,
+      change: setDocumentDraft,
+      close: () => setDocumentDraft(null),
+      save: saveDocument,
     },
     addFilesDialog: {
       open: addFilesOpen,
