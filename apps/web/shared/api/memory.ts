@@ -1,7 +1,35 @@
 import type { Memories } from "@deeix/api-contract";
 import { authedRequest } from "@/shared/api/authed-client";
 import { pathParam } from "@/shared/api/http-client";
-import type { UserMemoryDTO } from "@/shared/api/memory-types";
+import type { ProjectMemoryDTO, UserMemoryDTO } from "@/shared/api/memory-types";
+
+export async function listProjectMemories(accessToken: string, projectID: string): Promise<ProjectMemoryDTO[]> {
+  return authedRequest<ProjectMemoryDTO[]>(`/api/v1/conversation-projects/${pathParam(projectID)}/memories`, {
+    method: "GET",
+    accessToken,
+  });
+}
+
+export async function upsertProjectMemory(
+  accessToken: string,
+  projectID: string,
+  memoryKey: string,
+  value: string,
+): Promise<ProjectMemoryDTO> {
+  const data = await authedRequest<{ memory: ProjectMemoryDTO }>(`/api/v1/conversation-projects/${pathParam(projectID)}/memories`, {
+    method: "PUT",
+    accessToken,
+    body: { memoryKey, value },
+  });
+  return data.memory;
+}
+
+export async function deleteProjectMemory(accessToken: string, projectID: string, memoryID: number): Promise<void> {
+  await authedRequest<{ deleted: boolean }>(`/api/v1/conversation-projects/${pathParam(projectID)}/memories/${memoryID}`, {
+    method: "DELETE",
+    accessToken,
+  });
+}
 
 export async function listUserMemories(accessToken: string): Promise<UserMemoryDTO[]> {
   return authedRequest<UserMemoryDTO[]>("/api/v1/memories/profile", {

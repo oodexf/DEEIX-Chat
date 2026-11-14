@@ -146,6 +146,14 @@ export function AppChatArea() {
   const touchByPublicID = useSidebarConversationField("touchByPublicID");
   const renameByPublicID = useSidebarConversationField("renameByPublicID");
   const upsertConversation = useSidebarConversationField("upsertConversation");
+  const refreshProjects = useSidebarConversationField("refreshProjects");
+  const conversationInProjectRef = React.useRef(false);
+  const handleConversationRunFinished = React.useCallback((runID: string) => {
+    finishConversationRun(runID);
+    if (conversationInProjectRef.current) {
+      void refreshProjects();
+    }
+  }, [finishConversationRun, refreshProjects]);
   const {
     cancelResumedGeneration,
     conversationPublicID: messageDataConversationID,
@@ -162,7 +170,7 @@ export function AppChatArea() {
   } = useChatData(conversationID, {
     activeGenerationRunsRef,
     activeGenerationRunsRevision,
-    onConversationRunFinished: finishConversationRun,
+    onConversationRunFinished: handleConversationRunFinished,
   });
   const { greetingTitle } = useChatViewerProfile();
   const activeConversation = React.useMemo(() => {
@@ -172,6 +180,7 @@ export function AppChatArea() {
     return items.find((item) => item.publicID === conversationID) ?? null;
   }, [conversationID, items]);
   const currentConversation = useChatLoadedConversation(conversationID, activeConversation);
+  conversationInProjectRef.current = Boolean(currentConversation?.projectID);
   const activeRouteProject = React.useMemo(() => {
     if (!routeProjectID || conversationID) {
       return null;
@@ -476,7 +485,7 @@ export function AppChatArea() {
     activeGenerationRunsRevision,
     onActiveGenerationRunsChange,
     onConversationRunDetached: detachConversationRun,
-    onConversationRunFinished: finishConversationRun,
+    onConversationRunFinished: handleConversationRunFinished,
     onConversationRunStarted: registerConversationRun,
     resumingActivityLabel,
     resumingRunID,

@@ -19,7 +19,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { ProjectMemoryPanel } from "@/features/shell/components/navigation/project-memory-panel";
 import { useShellProjectDialogDefaults } from "@/features/shell/hooks/use-shell-project-dialog-defaults";
 import type { ProjectDraft } from "@/features/shell/types/project";
 import { cn } from "@/lib/utils";
@@ -58,6 +60,7 @@ export function ProjectDialog({
   const t = useTranslations("recent.projects");
   const { knowledgeBaseEnabled } = useFeaturePolicy();
   const [submitting, setSubmitting] = React.useState(false);
+  const [tab, setTab] = React.useState("settings");
   const stableDraft = useDialogSnapshot(draft);
   const open = Boolean(draft);
   const nameInputID = React.useId();
@@ -68,6 +71,7 @@ export function ProjectDialog({
   React.useEffect(() => {
     if (!draft) {
       setSubmitting(false);
+      setTab("settings");
     }
   }, [draft]);
 
@@ -138,6 +142,20 @@ export function ProjectDialog({
             <DialogDescription>{stableDraft?.publicID ? t("editDescription") : t("createDescription")}</DialogDescription>
           </DialogHeader>
 
+          {stableDraft?.publicID ? (
+            <Tabs value={tab} onValueChange={setTab} className="shrink-0 px-4 pb-2">
+              <TabsList>
+                <TabsTrigger value="settings">{t("memory.settingsTab")}</TabsTrigger>
+                <TabsTrigger value="memory">{t("memory.tab")}</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          ) : null}
+
+          {tab === "memory" && stableDraft?.publicID ? (
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-2 pb-4">
+              <ProjectMemoryPanel projectID={stableDraft.publicID} />
+            </div>
+          ) : (
           <form className="flex min-h-0 flex-1 flex-col" onSubmit={handleSubmit}>
             <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-2">
               <div className="space-y-1">
@@ -314,6 +332,7 @@ export function ProjectDialog({
               </Button>
             </DialogFooter>
           </form>
+          )}
         </DialogHeightTransition>
       </DialogContent>
     </Dialog>

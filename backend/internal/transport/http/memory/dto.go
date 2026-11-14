@@ -71,3 +71,42 @@ func toUserMemoryResponse(m domainmemory.UserMemory) UserMemoryResponse {
 		UpdatedAt: m.UpdatedAt,
 	}
 }
+
+// UpsertProjectMemoryRequest 表示项目记忆写入请求。
+type UpsertProjectMemoryRequest struct {
+	MemoryKey string `json:"memoryKey"`
+	Value     string `json:"value"`
+}
+
+// ProjectMemoryResponse 表示项目共享记忆，不暴露内部项目 ID。
+type ProjectMemoryResponse struct {
+	ID        uint      `json:"id"`
+	MemoryKey string    `json:"memoryKey"`
+	Value     string    `json:"value"`
+	Source    string    `json:"source" enums:"user,assistant,auto"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+type ProjectMemoryDataResponse struct {
+	Memory ProjectMemoryResponse `json:"memory"`
+}
+type ProjectMemoryDeleteDataResponse struct {
+	Deleted bool `json:"deleted"`
+}
+type ProjectMemoryListResponseDoc struct {
+	ErrorMsg string                  `json:"errorMsg"`
+	Data     []ProjectMemoryResponse `json:"data"`
+}
+type ProjectMemoryResponseDoc struct {
+	ErrorMsg string                    `json:"errorMsg"`
+	Data     ProjectMemoryDataResponse `json:"data"`
+}
+type ProjectMemoryDeleteResponseDoc struct {
+	ErrorMsg string                          `json:"errorMsg"`
+	Data     ProjectMemoryDeleteDataResponse `json:"data"`
+}
+
+func toProjectMemoryResponse(item domainmemory.ProjectMemory) ProjectMemoryResponse {
+	return ProjectMemoryResponse{ID: item.ID, MemoryKey: item.MemoryKey, Value: item.Value, Source: item.Source, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}
+}

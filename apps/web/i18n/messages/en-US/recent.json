@@ -77,6 +77,27 @@
     "deleteDescription": "Delete \"{name}\"? Conversations inside it will stay available and become unassigned.",
     "deleteConversationsLabel": "Also delete all conversations",
     "deleteConversationsDescription": "When selected, conversations in this project are also deleted; otherwise they move to Default.",
+    "memory": {
+      "settingsTab": "Settings",
+      "tab": "Memory",
+      "description": "Every conversation in this project shares these memories. The assistant records them as you chat, and you can add or edit them here.",
+      "keyPlaceholder": "Name",
+      "valuePlaceholder": "What to remember",
+      "add": "Add",
+      "empty": "No project memories yet",
+      "edit": "Edit",
+      "delete": "Delete",
+      "save": "Save",
+      "cancel": "Cancel",
+      "loadFailed": "Failed to load project memories",
+      "saveFailed": "Failed to save project memory",
+      "deleteFailed": "Failed to delete project memory",
+      "source": {
+        "user": "Manual",
+        "assistant": "Assistant",
+        "auto": "Auto"
+      }
+    },
     "cancel": "Cancel",
     "save": "Save"
   },

@@ -28,3 +28,10 @@ type KnowledgeBase struct {
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 }
+
+// TextDocument 是编辑器使用的标题和原始正文。
+type TextDocument struct {
+	FileID  string
+	Title   string
+	Content string
+}

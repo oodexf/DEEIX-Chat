@@ -45,6 +45,7 @@ export type SidebarConversationsControllerValue = {
   updateLabelsByPublicID: (publicID: string, labels: string[]) => Promise<ConversationDTO | null>;
   createProject: (payload: CreateConversationProjectRequest) => Promise<ConversationProjectDTO | null>;
   updateProject: (projectID: string, payload: UpdateConversationProjectRequest) => Promise<ConversationProjectDTO | null>;
+  refreshProjects: () => Promise<void>;
   deleteProject: (projectID: string, options?: DeleteConversationProjectOptions) => Promise<boolean>;
   reorderProjects: (projectIDs: string[]) => Promise<void>;
   setProjectByPublicID: (publicID: string, projectID?: string) => Promise<ConversationDTO | null>;

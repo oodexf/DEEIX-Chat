@@ -993,6 +993,12 @@ func (r *Repo) DeleteAccountHard(ctx context.Context, userID uint) error {
 				},
 			},
 			{
+				label: "chat_conversation_project_memories",
+				run: func(db *gorm.DB) error {
+					return db.Where("project_id IN (?)", projectSubQuery).Delete(&models.ProjectMemory{}).Error
+				},
+			},
+			{
 				label: "chat_conversation_projects",
 				run: func(db *gorm.DB) error {
 					return db.Unscoped().Where("user_id = ?", userID).Delete(&models.ConversationProject{}).Error

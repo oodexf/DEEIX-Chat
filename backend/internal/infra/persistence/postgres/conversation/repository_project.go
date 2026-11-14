@@ -214,6 +214,9 @@ func (r *Repo) DeleteConversationProjectByPublicID(
 		if err := tx.Where("project_id = ?", project.ID).Delete(&models.ConversationProjectKnowledgeBase{}).Error; err != nil {
 			return dberror.Translate(err)
 		}
+		if err := tx.Where("project_id = ?", project.ID).Delete(&models.ProjectMemory{}).Error; err != nil {
+			return dberror.Translate(err)
+		}
 		if err := tx.Delete(&project).Error; err != nil {
 			return dberror.Translate(err)
 		}
@@ -453,4 +456,22 @@ func replaceConversationProjectSkills(tx *gorm.DB, projectID uint, skillIDs []ui
 		return nil
 	}
 	return tx.Create(&rows).Error
+}
+
+// ListProjectWritableKnowledgeBases 返回项目关联的本人个人库目录。
+func (r *Repo) ListProjectWritableKnowledgeBases(ctx context.Context, userID uint, projectID uint) ([]domainknowledgebase.KnowledgeBase, error) {
+	var items []models.KnowledgeBase
+	err := r.db.WithContext(ctx).Model(&models.KnowledgeBase{}).
+		Joins("JOIN chat_conversation_project_knowledge_bases AS pk ON pk.knowledge_base_id = knowledge_bases.id").
+		Joins("JOIN chat_conversation_projects AS p ON p.id = pk.project_id AND p.deleted_at IS NULL").
+		Where("p.id = ? AND p.user_id = ? AND knowledge_bases.scope = ? AND knowledge_bases.owner_user_id = ? AND knowledge_bases.enabled = ?", projectID, userID, domainknowledgebase.ScopeUser, userID, true).
+		Order("pk.sort_order ASC, knowledge_bases.id ASC").Find(&items).Error
+	if err != nil {
+		return nil, dberror.Translate(err)
+	}
+	result := make([]domainknowledgebase.KnowledgeBase, 0, len(items))
+	for _, item := range items {
+		result = append(result, domainknowledgebase.KnowledgeBase{PublicID: item.PublicID, Name: item.Name, Description: item.Description})
+	}
+	return result, nil
 }

@@ -4711,6 +4711,8 @@ definitions:
         type: string
       detectedMIME:
         type: string
+      editable:
+        type: boolean
       embedError:
         type: string
       embedStatus:
@@ -4744,6 +4746,7 @@ definitions:
     - chunkCount
     - createdAt
     - detectedMIME
+    - editable
     - embedError
     - embedStatus
     - extractStatus
@@ -7589,6 +7592,78 @@ definitions:
     - data
     - errorMsg
     type: object
+  ProjectMemoryDataResponse:
+    properties:
+      memory:
+        $ref: '#/definitions/ProjectMemoryResponse'
+    required:
+    - memory
+    type: object
+  ProjectMemoryDeleteDataResponse:
+    properties:
+      deleted:
+        type: boolean
+    required:
+    - deleted
+    type: object
+  ProjectMemoryDeleteResponseDoc:
+    properties:
+      data:
+        $ref: '#/definitions/ProjectMemoryDeleteDataResponse'
+      errorMsg:
+        type: string
+    required:
+    - data
+    - errorMsg
+    type: object
+  ProjectMemoryListResponseDoc:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/ProjectMemoryResponse'
+        type: array
+      errorMsg:
+        type: string
+    required:
+    - data
+    - errorMsg
+    type: object
+  ProjectMemoryResponse:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: integer
+      memoryKey:
+        type: string
+      source:
+        enum:
+        - user
+        - assistant
+        - auto
+        type: string
+      updatedAt:
+        type: string
+      value:
+        type: string
+    required:
+    - createdAt
+    - id
+    - memoryKey
+    - source
+    - updatedAt
+    - value
+    type: object
+  ProjectMemoryResponseDoc:
+    properties:
+      data:
+        $ref: '#/definitions/ProjectMemoryDataResponse'
+      errorMsg:
+        type: string
+    required:
+    - data
+    - errorMsg
+    type: object
   PromptPresetDataResponse:
     properties:
       promptPreset:
@@ -9734,6 +9809,36 @@ definitions:
     - blockID
     - messageIndex
     type: object
+  TextDocumentDataResponse:
+    properties:
+      document:
+        $ref: '#/definitions/TextDocumentResponse'
+    required:
+    - document
+    type: object
+  TextDocumentResponse:
+    properties:
+      content:
+        type: string
+      fileID:
+        type: string
+      title:
+        type: string
+    required:
+    - content
+    - fileID
+    - title
+    type: object
+  TextDocumentResponseDoc:
+    properties:
+      data:
+        $ref: '#/definitions/TextDocumentDataResponse'
+      errorMsg:
+        type: string
+    required:
+    - data
+    - errorMsg
+    type: object
   ToolListResponse:
     properties:
       results:
@@ -10655,6 +10760,16 @@ definitions:
     - outputUSDPerMTokens
     - platformModelName
     - pricingMode
+    type: object
+  UpsertProjectMemoryRequest:
+    properties:
+      memoryKey:
+        type: string
+      value:
+        type: string
+    required:
+    - memoryKey
+    - value
     type: object
   UpsertUpstreamModelRequest:
     properties:
@@ -12056,6 +12171,16 @@ definitions:
     - markdown
     - title
     - trigger
+    type: object
+  WriteTextDocumentRequest:
+    properties:
+      content:
+        type: string
+      title:
+        type: string
+    required:
+    - content
+    - title
     type: object
   WriteUIComponentRequest:
     properties:
@@ -19196,6 +19321,110 @@ paths:
       summary: 更新会话项目
       tags:
       - chat
+  /conversation-projects/{id}/memories:
+    get:
+      parameters:
+      - description: 项目公开ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ProjectMemoryListResponseDoc'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/MemoryErrorDoc'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/MemoryErrorDoc'
+      security:
+      - BearerAuth: []
+      summary: 查询项目共享记忆
+      tags:
+      - memory
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 项目公开ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 记忆键与内容
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/UpsertProjectMemoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ProjectMemoryResponseDoc'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/MemoryErrorDoc'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/MemoryErrorDoc'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/MemoryErrorDoc'
+      security:
+      - BearerAuth: []
+      summary: 新建或更新项目共享记忆
+      tags:
+      - memory
+  /conversation-projects/{id}/memories/{memoryID}:
+    delete:
+      parameters:
+      - description: 项目公开ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 记忆ID
+        in: path
+        name: memoryID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ProjectMemoryDeleteResponseDoc'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/MemoryErrorDoc'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/MemoryErrorDoc'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/MemoryErrorDoc'
+      security:
+      - BearerAuth: []
+      summary: 删除项目共享记忆
+      tags:
+      - memory
   /conversation-projects/reorder:
     post:
       consumes:
@@ -21409,6 +21638,156 @@ paths:
       security:
       - BearerAuth: []
       summary: 查询可加入个人知识库的文件
+      tags:
+      - knowledge-bases
+  /knowledge-bases/mine/{id}/documents:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 知识库公开ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 标题和正文
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/WriteTextDocumentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/KnowledgeBaseFileResponseDoc'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/KnowledgebaseErrorDoc'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/KnowledgebaseErrorDoc'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/KnowledgebaseErrorDoc'
+        "409":
+          description: 存储配额不足
+          schema:
+            $ref: '#/definitions/KnowledgebaseErrorDoc'
+        "413":
+          description: Request Entity Too Large
+          schema:
+            $ref: '#/definitions/KnowledgebaseErrorDoc'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/KnowledgebaseErrorDoc'
+      security:
+      - BearerAuth: []
+      summary: 在个人知识库中新建文本文档
+      tags:
+      - knowledge-bases
+  /knowledge-bases/mine/{id}/documents/{fileID}:
+    get:
+      parameters:
+      - description: 知识库公开ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 文件ID
+        in: path
+        name: fileID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/TextDocumentResponseDoc'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/KnowledgebaseErrorDoc'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/KnowledgebaseErrorDoc'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/KnowledgebaseErrorDoc'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/KnowledgebaseErrorDoc'
+      security:
+      - BearerAuth: []
+      summary: 读取个人知识库文本文档的标题和正文
+      tags:
+      - knowledge-bases
+    put:
+      consumes:
+      - application/json
+      description: 返回实际文件 ID，内容变化后可能与原 ID 不同
+      parameters:
+      - description: 知识库公开ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 文件ID
+        in: path
+        name: fileID
+        required: true
+        type: string
+      - description: 标题和完整正文
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/WriteTextDocumentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/KnowledgeBaseFileResponseDoc'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/KnowledgebaseErrorDoc'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/KnowledgebaseErrorDoc'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/KnowledgebaseErrorDoc'
+        "409":
+          description: 存储配额不足
+          schema:
+            $ref: '#/definitions/KnowledgebaseErrorDoc'
+        "413":
+          description: Request Entity Too Large
+          schema:
+            $ref: '#/definitions/KnowledgebaseErrorDoc'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/KnowledgebaseErrorDoc'
+      security:
+      - BearerAuth: []
+      summary: 全量替换个人知识库文本文档
       tags:
       - knowledge-bases
   /knowledge-bases/mine/{id}/files:

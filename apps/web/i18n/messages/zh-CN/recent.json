@@ -77,6 +77,27 @@
     "deleteDescription": "删除「{name}」？项目内对话会保留并变为默认。",
     "deleteConversationsLabel": "同时删除所有会话",
     "deleteConversationsDescription": "勾选后会同时删除项目下的会话；不勾选则移动到默认。",
+    "memory": {
+      "settingsTab": "设置",
+      "tab": "记忆",
+      "description": "项目内所有对话共享这些记忆。助手会在对话中自动记录，你也可以手动添加或修改。",
+      "keyPlaceholder": "名称",
+      "valuePlaceholder": "要记住的内容",
+      "add": "添加",
+      "empty": "暂无项目记忆",
+      "edit": "编辑",
+      "delete": "删除",
+      "save": "保存",
+      "cancel": "取消",
+      "loadFailed": "加载项目记忆失败",
+      "saveFailed": "保存项目记忆失败",
+      "deleteFailed": "删除项目记忆失败",
+      "source": {
+        "user": "手动",
+        "assistant": "助手",
+        "auto": "自动"
+      }
+    },
     "cancel": "取消",
     "save": "保存"
   },

@@ -133,6 +133,8 @@ function toolStatusLabel(status: string | undefined, labels: ProcessTraceLabels)
 }
 
 function toolTraceCallLabel(call: ToolTraceCall, category: ToolResultCategory, labels: ProcessTraceLabels): string {
+  const builtinLabel = labels.tool.names.builtin[call.name?.trim() ?? ""];
+  if (builtinLabel) return builtinLabel;
   switch (category) {
     case "web_search":
       return labels.tool.names.webSearch;

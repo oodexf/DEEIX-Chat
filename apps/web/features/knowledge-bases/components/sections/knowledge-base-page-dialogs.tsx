@@ -7,13 +7,14 @@ import {
   DeleteKnowledgeBaseDialog,
   KnowledgeBaseEditorDialog,
 } from "@/features/knowledge-bases/components/sections/knowledge-base-dialogs";
+import { KnowledgeBaseDocumentDialog } from "@/features/knowledge-bases/components/sections/knowledge-base-document-dialog";
 import type { KnowledgeBasePageModel } from "@/features/knowledge-bases/hooks/use-knowledge-base-page";
 import type { KnowledgeBaseMode } from "@/features/knowledge-bases/types/knowledge-bases";
 
 // Editor, file picker, delete confirmations and file preview shared by the user
 // workspace and the admin knowledge base section.
 export function KnowledgeBasePageDialogs({ mode, page }: { mode: KnowledgeBaseMode; page: KnowledgeBasePageModel }) {
-  const { detail, editor, addFilesDialog, deleteDialog, bulkDeleteDialog, preview } = page;
+  const { detail, editor, documentEditor, addFilesDialog, deleteDialog, bulkDeleteDialog, preview } = page;
 
   return (
     <>
@@ -23,6 +24,13 @@ export function KnowledgeBasePageDialogs({ mode, page }: { mode: KnowledgeBaseMo
         onDraftChange={editor.change}
         onClose={editor.close}
         onSave={() => void editor.save()}
+      />
+      <KnowledgeBaseDocumentDialog
+        draft={documentEditor.draft}
+        saving={documentEditor.saving}
+        onDraftChange={documentEditor.change}
+        onClose={documentEditor.close}
+        onSave={() => void documentEditor.save()}
       />
       <AddKnowledgeBaseFilesDialog
         open={addFilesDialog.open}

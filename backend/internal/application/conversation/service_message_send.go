@@ -11,6 +11,7 @@ import (
 	appcm "github.com/DEEIX-AI/DEEIX-Chat/backend/internal/application/contentmoderation"
 	apprag "github.com/DEEIX-AI/DEEIX-Chat/backend/internal/application/rag"
 	model "github.com/DEEIX-AI/DEEIX-Chat/backend/internal/domain/conversation"
+	domainknowledgebase "github.com/DEEIX-AI/DEEIX-Chat/backend/internal/domain/knowledgebase"
 	domainmemory "github.com/DEEIX-AI/DEEIX-Chat/backend/internal/domain/memory"
 	platformtracing "github.com/DEEIX-AI/DEEIX-Chat/backend/internal/infra/observability/tracing"
 	"github.com/DEEIX-AI/DEEIX-Chat/backend/internal/pkg/textutil"
@@ -403,8 +404,11 @@ func (s *Service) sendMessageInternal(
 
 	// 并行预取：Snapshot + UserMemory 提前加载，隐藏 DB 延迟。
 	type prefetchData struct {
-		snapshot     *model.ContextSnapshot
-		userMemories []domainmemory.UserMemory
+		snapshot              *model.ContextSnapshot
+		userMemories          []domainmemory.UserMemory
+		projectMemories       []domainmemory.ProjectMemory
+		projectKnowledgeBases []domainknowledgebase.KnowledgeBase
+		err                   error
 	}
 	prefetchCh := make(chan prefetchData, 1)
 	go func() {
@@ -414,6 +418,12 @@ func (s *Service) sendMessageInternal(
 		}
 		if s.memoryRecorder != nil {
 			r.userMemories, _ = s.getCachedUserMemories(ctx, input.UserID)
+		}
+		if conversation.ProjectID != nil {
+			r.projectMemories, r.err = s.memoryRecorder.ListProjectMemoriesByProjectID(ctx, *conversation.ProjectID)
+			if r.err == nil && cfg.KnowledgeBaseEnabled {
+				r.projectKnowledgeBases, r.err = s.repo.ListProjectWritableKnowledgeBases(ctx, input.UserID, *conversation.ProjectID)
+			}
 		}
 		prefetchCh <- r
 	}()
@@ -427,6 +437,10 @@ func (s *Service) sendMessageInternal(
 
 	// 收集并行预取结果，再规划本轮可发送的 PromptScope。
 	prefetch := <-prefetchCh
+	if prefetch.err != nil {
+		retErr = prefetch.err
+		return nil, retErr
+	}
 	if err = s.loadMessageBranchContext(
 		ctx,
 		input.ConversationID,
@@ -534,6 +548,7 @@ func (s *Service) sendMessageInternal(
 		retErr = err
 		return nil, err
 	}
+	toolRuntime = toolRuntime.withProjectTools(*conversation, cfg.KnowledgeBaseEnabled)
 	imageAttachmentRoutingActive := toolRuntime.attachmentProcessor != nil
 	imageProcessing, err := s.processImageAttachments(ctx, imageAttachmentProcessingInput{
 		UserID:         input.UserID,
@@ -581,7 +596,10 @@ func (s *Service) sendMessageInternal(
 	}
 
 	contextAssembler := NewContextAssembler(0)
-	userCtx := userContextInput{ImageAnalyses: imageProcessing.Analyses}
+	userCtx := userContextInput{ImageAnalyses: imageProcessing.Analyses,
+		ProjectMemories:       selectProjectMemories(prefetch.projectMemories, 1500),
+		ProjectKnowledgeBases: prefetch.projectKnowledgeBases,
+	}
 	// 组件状态只认本轮实际发送的历史：被压缩快照覆盖的消息已不在提示词里，其上的组件状态不再注入。
 	userCtx.UIStates = resolveBranchUIStates(cfg, promptMessages, input.UIStates)
 	var prefixMemories []domainmemory.UserMemory
@@ -910,6 +928,7 @@ func (s *Service) sendMessageInternal(
 			TraceRecorder:     traceRecorder,
 			ToolNameMap:       toolRuntime.nameMap,
 			MCPBindings:       toolRuntime.mcpBindings,
+			ProjectBindings:   toolRuntime.projectBindings,
 			ToolSchemas:       toolRuntime.schemas,
 			Ledger:            toolLedger,
 			ResultTokenBudget: toolResultTokenBudget,
@@ -1246,6 +1265,7 @@ func (s *Service) sendMessageInternal(
 			ReuseUserMessage: reuseUserMessage,
 		})
 	}
+	s.scheduleProjectMemoryExtraction(ctx, *conversation, *result)
 	return result, nil
 }
 

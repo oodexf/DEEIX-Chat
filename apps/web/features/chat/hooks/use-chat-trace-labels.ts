@@ -61,6 +61,8 @@ export type ProcessTraceLabels = {
       codeInterpreter: string;
       imageGeneration: string;
       shell: string;
+      // Built-in project tools, keyed by the tool name the model calls.
+      builtin: Record<string, string>;
       generic: string;
     };
     detail: {
@@ -205,6 +207,16 @@ export function useChatTraceLabels(): ProcessTraceLabels {
           codeInterpreter: t("tool.names.codeInterpreter"),
           imageGeneration: t("tool.names.imageGeneration"),
           shell: t("tool.names.shell"),
+          builtin: {
+            project_memory_save: t("tool.names.builtin.project_memory_save"),
+            project_memory_delete: t("tool.names.builtin.project_memory_delete"),
+            knowledge_base_create: t("tool.names.builtin.knowledge_base_create"),
+            knowledge_base_update: t("tool.names.builtin.knowledge_base_update"),
+            knowledge_base_write_document: t("tool.names.builtin.knowledge_base_write_document"),
+            knowledge_base_delete_document: t("tool.names.builtin.knowledge_base_delete_document"),
+            knowledge_base_list_documents: t("tool.names.builtin.knowledge_base_list_documents"),
+            knowledge_base_read_document: t("tool.names.builtin.knowledge_base_read_document"),
+          },
           generic: t("tool.names.generic"),
         },
         detail: {

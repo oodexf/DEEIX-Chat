@@ -272,14 +272,16 @@ type Attachment struct {
 
 // FileObject 表示文件对象。
 type FileObject struct {
-	ID                     uint
-	FileID                 string
-	UserID                 uint
-	Purpose                string
-	FileName               string
-	MimeType               string
-	DetectedMIME           string
-	FileCategory           string
+	ID           uint
+	FileID       string
+	UserID       uint
+	Purpose      string
+	FileName     string
+	MimeType     string
+	DetectedMIME string
+	FileCategory string
+	// Editable 由知识库服务根据归属和文本格式计算，不持久化。
+	Editable               bool
 	SizeBytes              int64
 	SHA256                 string
 	StoragePath            string

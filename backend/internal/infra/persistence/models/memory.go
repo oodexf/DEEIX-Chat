@@ -15,3 +15,15 @@ type UserMemory struct {
 func (UserMemory) TableName() string {
 	return "user_memories"
 }
+
+// ProjectMemory 记录项目共享记忆，硬删除后可重新使用同一记忆键。
+type ProjectMemory struct {
+	ControlPlaneModel
+	ProjectID uint   `gorm:"not null;uniqueIndex:idx_project_memories_project_key,priority:1;comment:项目ID"`
+	MemoryKey string `gorm:"size:128;not null;uniqueIndex:idx_project_memories_project_key,priority:2;comment:记忆键"`
+	Value     string `gorm:"type:text;not null;comment:记忆内容"`
+	Source    string `gorm:"size:16;not null;comment:写入来源(user/assistant/auto)"`
+}
+
+// TableName 指定表名。
+func (ProjectMemory) TableName() string { return "chat_conversation_project_memories" }

@@ -6,6 +6,7 @@ import type {
   AddKnowledgeBaseFilesRequest,
   KnowledgeBaseData,
   KnowledgeBaseDeleteData,
+  KnowledgeBaseDocumentDTO,
   KnowledgeBaseDTO,
   KnowledgeBaseFileData,
   KnowledgeBaseFileDTO,
@@ -17,6 +18,7 @@ import type {
   KnowledgeBasePage,
   PatchKnowledgeBaseRequest,
   PatchMyKnowledgeBaseRequest,
+  WriteKnowledgeBaseDocumentRequest,
   WriteKnowledgeBaseRequest,
   WriteMyKnowledgeBaseRequest,
 } from "@/shared/api/knowledge-bases-types";
@@ -197,6 +199,35 @@ export async function removeMyKnowledgeBaseFile(accessToken: string, id: string,
   return authedRequest<KnowledgeBaseFileMutationData>(
     `/api/v1/knowledge-bases/mine/${pathParam(id)}/files/${pathParam(fileID)}`,
     { method: "DELETE", accessToken },
+    true,
+  );
+}
+
+export async function getMyKnowledgeBaseDocument(
+  accessToken: string,
+  id: string,
+  fileID: string,
+): Promise<KnowledgeBaseDocumentDTO> {
+  const data = await authedRequest<{ document: KnowledgeBaseDocumentDTO }>(
+    `/api/v1/knowledge-bases/mine/${pathParam(id)}/documents/${pathParam(fileID)}`,
+    { accessToken },
+    true,
+  );
+  return data.document;
+}
+
+// Saving a document stores a new file version, so the returned fileID replaces
+// the one passed in.
+export async function saveMyKnowledgeBaseDocument(
+  accessToken: string,
+  id: string,
+  payload: WriteKnowledgeBaseDocumentRequest,
+  fileID?: string,
+): Promise<KnowledgeBaseFileData> {
+  const basePath = `/api/v1/knowledge-bases/mine/${pathParam(id)}/documents`;
+  return authedRequest<KnowledgeBaseFileData>(
+    fileID ? `${basePath}/${pathParam(fileID)}` : basePath,
+    { method: fileID ? "PUT" : "POST", accessToken, body: payload },
     true,
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, BookOpen, DatabaseZap, Link2Off, Plus } from "lucide-react";
+import { ArrowLeft, BookOpen, DatabaseZap, FilePlus2, Link2Off, Pencil, Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +37,9 @@ type KnowledgeBaseDetailProps = {
   vectorizingFileIDs: string[];
   onBack: () => void;
   onAddFiles: () => void;
+  // Text documents exist only in personal knowledge bases, so the admin surface omits these.
+  onCreateDocument?: () => void;
+  onEditDocument?: (file: KnowledgeBaseFileDTO) => void;
   onLoadMore: () => Promise<void>;
   onRemoveFile: (fileID: string) => Promise<void>;
   onToggleEnabled: (enabled: boolean) => Promise<void>;
@@ -62,6 +65,8 @@ export function KnowledgeBaseDetail({
   vectorizingFileIDs,
   onBack,
   onAddFiles,
+  onCreateDocument,
+  onEditDocument,
   onLoadMore,
   onRemoveFile,
   onToggleEnabled,
@@ -89,6 +94,7 @@ export function KnowledgeBaseDetail({
             toggling={toggling}
             onBack={onBack}
             onAddFiles={onAddFiles}
+            onCreateDocument={onCreateDocument}
             onToggleEnabled={onToggleEnabled}
           />
           {loading || files.length > 0 ? (
@@ -104,6 +110,7 @@ export function KnowledgeBaseDetail({
               vectorizingFileIDs={vectorizingFileIDs}
               onLoadMore={onLoadMore}
               onRemoveFile={onRemoveFile}
+              onEditDocument={onEditDocument}
               onPreviewFile={onPreviewFile}
               onToggleFileSelection={onToggleFileSelection}
               onSelectVectorizableFiles={onSelectVectorizableFiles}
@@ -133,7 +140,7 @@ export function KnowledgeBaseDetail({
 
 type KnowledgeBaseDetailHeaderProps = Pick<
   KnowledgeBaseDetailProps,
-  "mode" | "selected" | "toggling" | "onBack" | "onAddFiles" | "onToggleEnabled"
+  "mode" | "selected" | "toggling" | "onBack" | "onAddFiles" | "onCreateDocument" | "onToggleEnabled"
 > & {
   selected: KnowledgeBaseDTO;
 };
@@ -144,6 +151,7 @@ function KnowledgeBaseDetailHeader({
   toggling,
   onBack,
   onAddFiles,
+  onCreateDocument,
   onToggleEnabled,
 }: KnowledgeBaseDetailHeaderProps) {
   const t = useTranslations("knowledgeBases");
@@ -192,6 +200,19 @@ function KnowledgeBaseDetailHeader({
               />
             </label>
           ) : null}
+          {onCreateDocument && selected.scope === "user" ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2"
+              onClick={onCreateDocument}
+              aria-label={t("newDocument")}
+            >
+              <FilePlus2 className="size-3.5" strokeWidth={1.6} />
+              <span className="hidden sm:inline">{t("newDocument")}</span>
+            </Button>
+          ) : null}
           <Button
             type="button"
             size="sm"
@@ -221,6 +242,7 @@ type KnowledgeBaseFileListProps = Pick<
   | "vectorizingFileIDs"
   | "onLoadMore"
   | "onRemoveFile"
+  | "onEditDocument"
   | "onPreviewFile"
   | "onToggleFileSelection"
   | "onSelectVectorizableFiles"
@@ -243,6 +265,7 @@ function KnowledgeBaseFileList({
   vectorizingFileIDs,
   onLoadMore,
   onRemoveFile,
+  onEditDocument,
   onPreviewFile,
   onToggleFileSelection,
   onSelectVectorizableFiles,
@@ -310,6 +333,7 @@ function KnowledgeBaseFileList({
               const vectorizable = canManuallyVectorizeFile(file);
               const outdatedIndex = isVectorIndexOutdated(file);
               const checked = selectedFileIDSet.has(file.fileID);
+              const documentEditable = Boolean(onEditDocument) && file.editable;
               return (
                 <div key={file.fileID} className={cn("group relative -mx-2 min-h-10 rounded-md", checked && "bg-muted/35")}>
                   {editable && vectorizable ? (
@@ -328,7 +352,7 @@ function KnowledgeBaseFileList({
                     type="button"
                     className={cn(
                       "flex min-h-10 w-full items-center gap-2 rounded-md px-2 py-1 text-left transition-colors hover:bg-muted/45 focus-visible:bg-muted/45 focus-visible:outline-none",
-                      editable && "pr-18",
+                      editable && (documentEditable ? "pr-26" : "pr-18"),
                     )}
                     onClick={() => onPreviewFile(file)}
                   >
@@ -376,6 +400,22 @@ function KnowledgeBaseFileList({
                           title={t(outdatedIndex ? "updateVectorIndex" : "vectorize")}
                         >
                           {vectorizingFileIDSet.has(file.fileID) ? <Spinner className="size-3.5" /> : <DatabaseZap className="size-3.5" strokeWidth={1.5} />}
+                        </Button>
+                      ) : null}
+                      {documentEditable ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          className="text-muted-foreground/70 hover:bg-muted hover:text-foreground"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onEditDocument?.(file);
+                          }}
+                          aria-label={t("editDocument")}
+                          title={t("editDocument")}
+                        >
+                          <Pencil className="size-3.5" strokeWidth={1.5} />
                         </Button>
                       ) : null}
                       <Button

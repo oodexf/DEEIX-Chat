@@ -61,6 +61,8 @@ export function AppKnowledgeBases() {
         vectorizingFileIDs={detail.vectorizingFileIDs}
         onBack={detail.back}
         onAddFiles={detail.addFiles}
+        onCreateDocument={detail.createDocument}
+        onEditDocument={(file) => void detail.editDocument(file)}
         onLoadMore={detail.loadMoreFiles}
         onRemoveFile={detail.removeFile}
         onToggleEnabled={detail.toggleBuiltinEnabled}

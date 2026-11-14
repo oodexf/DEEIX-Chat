@@ -212,6 +212,7 @@
   "knowledgeBase": {
     "conflict": "当前范围内已存在同名知识库。",
     "disabled": "知识库检索功能已停用。",
+    "documentNotEditable": "该文件不是可编辑的文本文档。",
     "fileCleanupUnavailable": "平台资料清理服务暂不可用，请稍后重试。",
     "internal": "知识库操作失败，请稍后重试。",
     "invalid": "知识库配置无效。",
@@ -289,7 +290,8 @@
   },
   "memory": {
     "keyRequired": "记忆键不能为空。",
-    "limitExceeded": "已达到记忆数量上限。"
+    "limitExceeded": "已达到记忆数量上限。",
+    "notFound": "记忆不存在。"
   },
   "media": {
     "imagePromptRequired": "请输入图片提示词。",

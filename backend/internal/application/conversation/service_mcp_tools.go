@@ -19,6 +19,7 @@ type selectedToolRuntime struct {
 	definitions         []llm.ToolDefinition
 	nameMap             map[string]string
 	mcpBindings         map[string]mcpToolCallBinding
+	projectBindings     map[string]projectToolBinding
 	schemas             map[string]json.RawMessage
 	attachmentProcessor *selectedAttachmentProcessor
 }
@@ -44,7 +45,8 @@ type selectedAttachmentProcessor struct {
 }
 
 func injectMCPToolGuidance(messages []llm.Message, runtime selectedToolRuntime, customPrompt string) []llm.Message {
-	if len(runtime.definitions) == 0 {
+	// 项目内置工具有自己的 project_tools 规则，这里只针对 MCP 工具。
+	if len(runtime.definitions) == len(runtime.projectBindings) {
 		return messages
 	}
 
@@ -99,6 +101,9 @@ func (s *Service) resolveSelectedToolRuntime(ctx context.Context, toolIDs []uint
 		schemas:     map[string]json.RawMessage{},
 	}
 	usedNames := map[string]int{}
+	for _, tool := range projectToolDefinitions {
+		usedNames[tool.Name] = 1
+	}
 	serverCache := map[uint]*domainmcp.Server{}
 	for _, tool := range tools {
 		if tool.Status != "active" {
@@ -208,6 +213,7 @@ func (r selectedToolRuntime) withoutDefinitions() selectedToolRuntime {
 	r.definitions = nil
 	r.nameMap = nil
 	r.mcpBindings = nil
+	r.projectBindings = nil
 	r.schemas = nil
 	r.attachmentProcessor = nil
 	return r

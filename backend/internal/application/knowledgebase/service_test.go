@@ -332,6 +332,7 @@ func (s *knowledgeBaseFileCleanerStub) DeleteFileIfUnreferenced(_ context.Contex
 }
 
 type knowledgeBaseRepositoryStub struct {
+	repository.KnowledgeBaseRepository
 	item                     *domainknowledgebase.KnowledgeBase
 	getErr                   error
 	file                     *domainconversation.FileObject
@@ -437,4 +438,8 @@ func (s *knowledgeBaseRepositoryStub) RemoveKnowledgeBaseFile(context.Context, u
 func (s *knowledgeBaseRepositoryStub) ResolveVisibleKnowledgeBaseFiles(context.Context, uint, []string) ([]domainknowledgebase.KnowledgeBase, []domainconversation.FileObject, error) {
 	s.resolveCalls++
 	return nil, nil, nil
+}
+
+func (s *knowledgeBaseRepositoryStub) ReplaceKnowledgeBaseTextFile(context.Context, uint, string, string, uint) error {
+	return nil
 }
